@@ -1,5 +1,4 @@
 faker
 pyttsx3
-requests
 ollama
 tqdm

@@ -9,6 +9,7 @@ A Python application that generates personalized mythological stories based on t
 - Text-to-speech narration of the generated story
 - Export to styled Markdown format
 - Random motif selection from the Thompson Motif Index
+- **A familiar story framework** (Campbell's Hero's Journey) that resonates across cultures
 
 ## Prerequisites
 
