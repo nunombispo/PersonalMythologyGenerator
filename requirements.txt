@@ -1,6 +1,5 @@
 faker
 pyttsx3
 requests
-python-dotenv
 ollama
 tqdm

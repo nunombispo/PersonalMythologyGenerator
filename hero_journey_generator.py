@@ -1,20 +1,47 @@
+"""
+Personal Mythology Generator - Hero's Journey Story Generator
+
+This script generates personalized mythological stories based on the Hero's Journey structure,
+incorporating elements from the Thompson Motif Index. It uses the Ollama API for story generation
+and includes text-to-speech narration capabilities.
+
+Features:
+- Personalized story generation based on user input
+- Integration with Ollama API for AI-powered story generation
+- Text-to-speech narration of the generated story
+- Export to styled Markdown format
+- Random motif selection from the Thompson Motif Index
+"""
+
 import json
 import random
 import pyttsx3
 from datetime import datetime
 from faker import Faker
 import os
-from dotenv import load_dotenv
 from ollama import Client
 import sys
 from tqdm import tqdm
 import time
 
-# Load environment variables
-load_dotenv()
-
 class HeroJourneyGenerator:
+    """
+    A class to generate personalized Hero's Journey stories using AI.
+    
+    This class handles the entire story generation process, from collecting user input
+    to generating the story, saving it to a markdown file, and narrating it using
+    text-to-speech.
+    """
+    
     def __init__(self):
+        """
+        Initialize the HeroJourneyGenerator with necessary components.
+        
+        Sets up:
+        - Faker for random name generation
+        - Text-to-speech engine with configured properties
+        - Ollama client for AI story generation
+        """
         self.faker = Faker()
         self.engine = pyttsx3.init()
         self.engine.setProperty('rate', 150)  # Speed of speech
@@ -23,7 +50,15 @@ class HeroJourneyGenerator:
         self.model_name = 'llama3.2:1b'
         
     def check_model(self):
-        """Check if the required model is available and pull it if needed."""
+        """
+        Check if the required Ollama model is available and pull it if needed.
+        
+        This method:
+        1. Checks if the model exists in the local Ollama installation
+        2. Pulls the model if it's not found
+        3. Shows download progress with a progress bar
+        4. Handles any errors during the process
+        """
         try:
             # Try to list models to check if Mistral is available
             models = self.ollama_client.list()
@@ -76,14 +111,23 @@ class HeroJourneyGenerator:
             sys.exit(1)
         
     def get_user_input(self):
-        """Collect user information for story customization."""
+        """
+        Collect user information for story customization.
+        
+        Returns:
+            tuple: (name, birthdate) where:
+                - name is either user input or a randomly generated name
+                - birthdate is a string in YYYY-MM-DD format
+        """
         print("\n=== Welcome to the Hero's Journey Story Generator ===")
         
+        # Get user input
         name = input("\nEnter your name (or press Enter for a random name): ").strip()
         if not name:
             name = self.faker.name()
             print(f"Generated name: {name}")
             
+        # Get birthdate from user
         while True:
             birthdate = input("\nEnter your birthdate (YYYY-MM-DD): ").strip()
             try:
@@ -95,18 +139,33 @@ class HeroJourneyGenerator:
         return name, birthdate
     
     def load_motifs(self):
-        """Load and select random motifs from the Thompson Motif Index."""
+        """
+        Load and select random motifs from the Thompson Motif Index.
+        
+        Returns:
+            list: A list of randomly selected motif dictionaries from tmi.json
+        """
         try:
+            # Load motifs from tmi.json
             with open('tmi.json', 'r', encoding='utf-8') as f:
                 motifs = json.load(f)
-                selected_motifs = random.sample(motifs, 3)
-                return selected_motifs
+            # Select 3 random motifs
+            selected_motifs = random.sample(motifs, 3)
+            return selected_motifs
         except FileNotFoundError:
             print("Error: tmi.json file not found!")
             return []
     
     def generate_story_part(self, prompt):
-        """Generate a story part using Ollama API."""
+        """
+        Generate a story part using Ollama API.
+        
+        Args:
+            prompt (str): The prompt to generate the story part
+            
+        Returns:
+            str: The generated story part text
+        """
         try:
             system_prompt = """You are a master storyteller specializing in mythological narratives. 
                 Your task is to create engaging, vivid, and meaningful stories that follow the Hero's Journey structure.
@@ -120,8 +179,9 @@ class HeroJourneyGenerator:
 
                 Write in a style that is both accessible and profound, suitable for a modern audience while maintaining the timeless quality of mythology.
             """
-
+            # Generate story part using Ollama API
             response = self.ollama_client.chat(model=self.model_name, 
+                # Set messages
                 messages=[
                     {
                         'role': 'system',
@@ -131,6 +191,7 @@ class HeroJourneyGenerator:
                         'role': 'user',
                         'content': prompt
                     }],
+                # Set temperature and number of threads
                 options={
                     "temperature": 0.7,
                     "num_thread": os.cpu_count() * 0.5
@@ -141,7 +202,17 @@ class HeroJourneyGenerator:
             return "Error generating this part of the story."
     
     def generate_hero_journey(self, name, birthdate, motifs):
-        """Generate the complete Hero's Journey story."""
+        """
+        Generate the complete Hero's Journey story.
+        
+        Args:
+            name (str): The hero's name
+            birthdate (str): The hero's birthdate in YYYY-MM-DD format
+            motifs (list): List of motif dictionaries to incorporate
+            
+        Returns:
+            list: List of tuples containing (title, content) for each part of the journey
+        """
         story_parts = []
         
         # Extract motif descriptions for the prompts
@@ -171,8 +242,17 @@ class HeroJourneyGenerator:
         return story_parts
     
     def save_to_markdown(self, name, birthdate, motifs, story_parts):
-        """Save the story to a markdown file."""
+        """
+        Save the story to a markdown file.
+        
+        Args:
+            name (str): The hero's name
+            birthdate (str): The hero's birthdate
+            motifs (list): List of motif dictionaries used in the story
+            story_parts (list): List of tuples containing (title, content) for each part
+        """
         with open('myth_story.md', 'w', encoding='utf-8') as f:
+            # Write header
             f.write(f"# {name}'s Hero's Journey\n\n")
             f.write(f"**Birthdate:** {birthdate}\n\n")
             f.write("## Selected Motifs\n")
@@ -184,29 +264,50 @@ class HeroJourneyGenerator:
                     f.write(f"  - Related terms: {', '.join(motif['lemmas'])}\n")
             f.write("\n## The Hero's Journey\n\n")
             
+            # Write story parts
             for title, content in story_parts:
                 f.write(f"### {title}\n\n")
                 f.write(f"{content}\n\n")
     
     def narrate_story(self, story_parts):
-        """Narrate the story using text-to-speech."""
+        """
+        Narrate the story using text-to-speech.
+        
+        Args:
+            story_parts (list): List of tuples containing (title, content) for each part
+        """
         print("\nNarrating the story...")
         for title, content in story_parts:
+            # Narrate each part
             self.engine.say(f"{title}. {content}")
+            # Wait for the current part to finish
             self.engine.runAndWait()
     
     def run(self):
-        """Main execution flow."""
+        """
+        Main execution flow of the story generator.
+        
+        This method:
+        1. Checks for the required model
+        2. Gets user input
+        3. Loads motifs
+        4. Generates the story
+        5. Saves it to markdown
+        6. Narrates it using text-to-speech
+        """
         # Check for model availability first
         self.check_model()
         
+        # Get user input    
         name, birthdate = self.get_user_input()
-        motifs = self.load_motifs()
         
+        # Load motifs
+        motifs = self.load_motifs()
         if not motifs:
             print("Unable to proceed without motifs. Please ensure tmi.json is present.")
             return
         
+        # Generate the story
         print("\nGenerating your personalized Hero's Journey...")
         story_parts = self.generate_hero_journey(name, birthdate, motifs)
         
