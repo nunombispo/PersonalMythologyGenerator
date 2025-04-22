@@ -22,7 +22,7 @@ A Python application that generates personalized mythological stories based on t
 1. Clone this repository:
 
 ```bash
-git clone https://github.com/yourusername/PersonalMythologyGenerator.git
+git clone https://github.com/nunombispo/PersonalMythologyGenerator.git
 cd PersonalMythologyGenerator
 ```
 
