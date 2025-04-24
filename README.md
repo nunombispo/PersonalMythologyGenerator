@@ -2,6 +2,8 @@
 
 A Python application that generates personalized mythological stories based on the Hero's Journey structure, incorporating elements from the Thompson Motif Index.
 
+If you like this application, consider donation to support Developer Service Blog and the creation of more of this type of content: https://buy.stripe.com/bIYdTrggi5lZamkdQW
+
 ## Features
 
 - Personalized story generation based on user input
